@@ -40,7 +40,7 @@ module IpToEarth
       }
 
       # invoke the API call request to fetch the response
-      _response = Unirest.get _query_url, headers: _headers
+      _response = Http.headers(_headers).get(_query_url)
 
       # Endpoint error handling using HTTP status codes.
       if _response.code == 404
@@ -51,12 +51,10 @@ module IpToEarth
       validate_response(_response)
 
       # Try to cast response to desired type
-      if _response.body.instance_of? Hash
-        begin
-          Result.from_hash(_response.body)
-        rescue Exception
-          raise APIException.new "Invalid JSON returned.", _response.code, _response.body
-        end
+      begin
+        Result.from_hash(JSON.parse _response)
+      rescue Exception
+        raise APIException.new "Invalid JSON returned.", _response.code, _response.to_s
       end
     end
   end
